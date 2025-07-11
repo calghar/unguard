@@ -87,7 +87,8 @@ See the Unguard Chart [README](chart/README.md) on how to install Unguard in you
 * **Synthetic Load Generation**: The application comes with a deployment that creates traffic using
   the [Element](https://element.flood.io/) browser-based load generation library.
 * **[Exploits](./exploit-toolkit/exploits/README.md)**: Different automated attack scenarios like JWT key confusion
-  attacks or remote code execution.
+  attacks, remote code execution, and Kubernetes container security exploits.
+* **[Container Security Toolkit](./exploit-toolkit/exploits/kubernetes/container/README.md)**: Hands-on learning platform for Kubernetes container security, featuring assessment tools, exploitation demonstrations, and automated remediation capabilities.
 * **[Monitoring](docs/MONACO.md)**: Dynatrace monitoring by
   utilizing [MONACO](https://github.com/dynatrace-oss/dynatrace-monitoring-as-code).
 
@@ -95,6 +96,58 @@ See the Unguard Chart [README](chart/README.md) on how to install Unguard in you
 
 * **Tracing and Jaeger**: [See these instructions](docs/TRACING.md)
 * **Malicious Load Generator**: [See these instructions](src/malicious-load-generator/README.md)
+
+## 🛡️ Security Testing
+
+> **Warning**  
+> The container security toolkit can introduce real vulnerabilities into your cluster. Only use in dedicated testing environments with proper network isolation. Never run on production clusters.
+
+Unguard includes a comprehensive container security toolkit that helps you learn about Kubernetes security misconfigurations and their remediation:
+
+* **Assessment Tools**: Analyze the security posture of your deployments
+* **Vulnerability Simulation**: Safely introduce common container security issues like privileged containers, dangerous capabilities, and host namespace sharing
+* **Exploitation Demonstrations**: See how attackers could exploit these vulnerabilities in real scenarios
+* **Automated Remediation**: Apply security best practices with a single command
+* **Interactive Learning**: Step-by-step workflows to understand each security concept
+
+### Prerequisites
+
+* Kubernetes cluster (1.24+ recommended)
+* kubectl configured with cluster access  
+* Python 3.9+ installed
+* Helm 3.x for Unguard deployment
+
+### Getting Started
+
+First, ensure Unguard is deployed in your cluster following the Quickstart guide above, then:
+
+```bash
+# Navigate to the toolkit directory
+cd exploit-toolkit
+
+# Install Python dependencies
+pip install -e .
+
+# Verify installation and check cluster connectivity
+ug-exploit-k8s status
+
+# Assess current security status
+ug-exploit-k8s assess
+
+# Make a service vulnerable for testing
+ug-exploit-k8s vuln-service unguard-payment-service privileged
+
+# Demonstrate the exploit
+ug-exploit-k8s exploit privileged-containers
+
+# Apply security fixes
+ug-exploit-k8s secure-service unguard-payment-service
+
+# Verify improvements
+ug-exploit-k8s verify
+```
+
+For detailed documentation, see the [Container Security Toolkit README](./exploit-toolkit/exploits/kubernetes/container/README.md).
 
 ---
 
