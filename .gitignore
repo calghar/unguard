@@ -9,12 +9,19 @@
 # Sonar Lint
 .idea/sonarlint/
 
+#Mirrord
+.mirrord
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/jsLinters
+.idea/prettier.xml
+.idea/inspectionProfiles
+.idea/codeStyles
 
 # AWS User-specific
 .idea/**/aws.xml
@@ -250,3 +257,5 @@ node_modules
 ### Helm ###
 # Chart dependencies
 **/charts/*.tgz
+
+

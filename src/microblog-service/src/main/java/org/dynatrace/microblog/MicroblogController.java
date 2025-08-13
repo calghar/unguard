@@ -86,10 +86,8 @@ public class MicroblogController {
     }
 
     @RequestMapping("/timeline")
-    public List<Post> timeline(@CookieValue(value = "jwt", required = false) String jwt) throws InvalidJwtException, NotLoggedInException {
-        checkJwt(jwt);
-
-        return redisClient.getTimeline(jwt);
+    public List<Post> timeline() {
+        return redisClient.getTimeline();
     }
 
     @RequestMapping("/mytimeline")
@@ -97,7 +95,7 @@ public class MicroblogController {
         checkJwt(jwt);
 
         Claims claims = JwtTokensUtils.decodeTokenClaims(jwt);
-        return redisClient.getUserTimeline(jwt, claims.get("userid").toString());
+        return redisClient.getUserTimeline(claims.get("userid").toString());
     }
 
     @PostMapping("/users/{user}/follow")
@@ -109,7 +107,7 @@ public class MicroblogController {
         Claims claims = JwtTokensUtils.decodeTokenClaims(currentUserJwt);
 
         String currentUserId = claims.get("userid").toString();
-        String userIdToFollow = userAuthServiceClient.getUserIdFromUsername(currentUserJwt, userToFollow);
+        String userIdToFollow = userAuthServiceClient.getUserIdFromUsername(userToFollow);
         if (userIdToFollow == null) {
             throw new InvalidUserException();
         }
@@ -118,6 +116,22 @@ public class MicroblogController {
             throw new FollowYourselfException();
         }
         redisClient.follow(currentUserId, userIdToFollow);
+    }
+
+    @PostMapping("/users/{user}/unfollow")
+    public void unfollow(@CookieValue(value = "jwt", required = false) String currentUserJwt,
+                         @PathVariable("user") String userToUnfollow) throws InvalidJwtException, InvalidUserException, UserNotFoundException, IOException, NotLoggedInException {
+
+        checkJwt(currentUserJwt);
+
+        Claims claims = JwtTokensUtils.decodeTokenClaims(currentUserJwt);
+
+        String currentUserId = claims.get("userid").toString();
+        String userIdToUnfollow = userAuthServiceClient.getUserIdFromUsername(userToUnfollow);
+        if (userIdToUnfollow == null) {
+            throw new InvalidUserException();
+        }
+        redisClient.unfollow(currentUserId, userIdToUnfollow);
     }
 
     @GetMapping("/users/{user}/posts")
@@ -133,12 +147,25 @@ public class MicroblogController {
     public Collection<User> getFollowers(@PathVariable("user") String user, @CookieValue(value = "jwt", required = false) String jwt) throws UserNotFoundException, InvalidJwtException, IOException, NotLoggedInException {
         checkJwt(jwt);
 
-        String userId = userAuthServiceClient.getUserIdFromUsername(jwt, user);
-        return redisClient.getFollowers(jwt, userId);
+        String userId = userAuthServiceClient.getUserIdFromUsername(user);
+        return redisClient.getFollowers(userId);
+    }
+
+    @GetMapping("/users/{user}/isFollowing")
+    public boolean isFollowing(@PathVariable("user") String user, @CookieValue(value = "jwt", required = false) String jwt) throws UserNotFoundException, InvalidJwtException, IOException, NotLoggedInException {
+        checkJwt(jwt);
+
+        Claims claims = JwtTokensUtils.decodeTokenClaims(jwt);
+        String currentUserId = claims.get("userid").toString();
+        String userIdToFollow = userAuthServiceClient.getUserIdFromUsername(user);
+        if (userIdToFollow == null) {
+            throw new UserNotFoundException();
+        }
+        return redisClient.isFollowing(currentUserId, userIdToFollow);
     }
 
     @PostMapping("/post")
-    public PostId post(@RequestBody PostForm postForm, @CookieValue(value = "jwt", required = false) String jwt) throws InvalidUserException, InvalidJwtException, NotLoggedInException {
+    public PostId post(@RequestBody PostForm postForm, @CookieValue(value = "jwt", required = false) String jwt) throws InvalidJwtException, NotLoggedInException {
         checkJwt(jwt);
 
         // decode JWT
@@ -150,7 +177,7 @@ public class MicroblogController {
     @GetMapping("/post/{postid}")
     public Post getPost(@PathVariable("postid") String postId, @CookieValue(value = "jwt", required = false) String jwt) throws UserNotFoundException, InvalidJwtException, IOException, NotLoggedInException {
         checkJwt(jwt);
-        final Post post = redisClient.getPost(jwt, postId);
+        final Post post = redisClient.getPost(postId);
         if (post == null) {
             throw new ResponseStatusException(NOT_FOUND, "Post not found.");
         }
